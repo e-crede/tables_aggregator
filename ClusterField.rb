@@ -6,7 +6,7 @@ require 'xsv'
  def load_configuration
     config = [
         {
-            file_name: "test/my_file.xlsx",
+            file_name: "test/_$(WEEK)_$(YEAR_DIGIT)_my_file.xlsx",
             start_row: 1,
             end_row: 10000,
             sheet_name: "Sheet1",
@@ -16,6 +16,17 @@ require 'xsv'
             save_to_db: true
         }
     ]
+    # Replace TOKENS with actual file names
+    config.each{|element|
+        name = element[:file_name]
+        name.gsub!("$(YEAR)", Date.today.strftime("%Y"))
+        name.gsub!("$(YEAR_DIGIT)", Date.today.strftime("%Y")[3])
+        name.gsub!("$(WEEK)", Date.today.strftime("%V"))
+        name.gsub!("$(MONTH)", Date.today.strftime("%m"))
+        name.gsub!("$(DAY)", Date.today.strftime("%d"))
+        element[:file_name] = name
+    }
+    return config
 end
 
 # Initialise program directory structure
@@ -125,7 +136,7 @@ end
     col_names_formatted.gsub!(" ",",")
     #puts "Column Names SQL: #{col_names_formatted}"
     #puts "Column Names list: #{col_names_list}"
-    
+
     # Iterate through rows and insert data into the database
     arr.each{|row|
         values_string = ""
@@ -134,6 +145,7 @@ end
         }
         values_string.strip!
         values_string.gsub!(" ",",")
+        #TODO - add insertion date & time
         db.execute "INSERT INTO #{db_table} (#{col_names_formatted}) VALUES (#{values_string})"
     }    
 end
