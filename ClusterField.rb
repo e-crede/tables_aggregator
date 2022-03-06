@@ -32,6 +32,7 @@ class ClusterField
     end
 
     def grab
+        err = false
         puts "INFO: Retrieving file..."
         path = @file_name
         if File::exists?(path)
@@ -39,11 +40,14 @@ class ClusterField
             puts "INFO: Found match: #{path}, last modified on #{mtime}"
             File.copy_stream(path,@tmp_dir << @store_name )
         else
-            abort("ERROR: File not found: #{path}")
+            puts ("ERROR: File not found: #{path}")
+            err = true
         end
+        return err
      end
 
      def archive
+        return "WARNING: Archiving disabled" unless @archive_file
         puts "INFO: Archiving file..."
         err = false
         today = "db/#{Date.today.to_s}"
@@ -179,6 +183,7 @@ configurations = [
         column_names: [{"ColumnA": "TEXT"},{"ColumnC": "TEXT"}, {"ColumnD": "TEXT"}],
         store_name: "my_file_2022.xlsx",
         db_table: "my_table",
+        archive_file: true,
         save_to_db: false
     }
 ]
@@ -188,8 +193,10 @@ init_structure
 configurations.each{|config|
     puts "INFO: Begin processing: #{config}"
     data = ClusterField.new(config)
-    data.grab
-    err = data.archive
+    err = data.grab
+    unless err
+        err = data.archive
+    end
     data.save_to_db unless err
     data.cleanup
 }
