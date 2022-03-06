@@ -32,6 +32,7 @@ class ClusterField
     end
 
     def grab
+        puts "INFO: Retrieving file..."
         path = @file_name
         if File::exists?(path)
             mtime = File::mtime(path)
@@ -43,6 +44,7 @@ class ClusterField
      end
 
      def archive
+        puts "INFO: Archiving file..."
         err = false
         today = "db/#{Date.today.to_s}"
         new_file = "tmp/#{@store_name}"
@@ -76,6 +78,7 @@ class ClusterField
 
     # TODO: Optimise and simplify method
     def save_to_db
+        puts "INFO: Saving file to database..."
         return puts "WARNING: Saving to DB disabled" unless @save_to_db
         arr = excel_array
         db = SQLite3::Database.open @db_name
@@ -137,6 +140,7 @@ class ClusterField
 
     def cleanup
     #TODO: delete tmp files
+    puts "INFO: Cleaning up...\n\n"
     end 
 end
 
@@ -184,13 +188,9 @@ init_structure
 configurations.each{|config|
     puts "INFO: Begin processing: #{config}"
     data = ClusterField.new(config)
-    puts "INFO: Retrieving file..."
     data.grab
-    puts "INFO: Archiving file..."
-    data.archive
-    puts "INFO: Saving file to database..."
-    data.save_to_db
-    puts "INFO: Cleaning up...\n\n"
+    err = data.archive
+    data.save_to_db unless err
     data.cleanup
 }
 
