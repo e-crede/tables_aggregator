@@ -52,18 +52,19 @@ class ClusterField
         puts "INFO: Reading excel file into memory..."
         file_name = "tmp/" << @store_name
         x = Xsv.open(file_name)
+        #TODO - Include first within an array selection
         sheet = x.sheets_by_name(@sheet_name).first
         sheet.parse_headers!
         sheet
     end
+
     # TODO: Optimise and simplify method
     def save_to_db
         return puts "WARNING: Saving to DB disabled" unless @save_to_db
         arr = excel_array
         db = SQLite3::Database.open @db_name
         today = Date.today.to_s
-        # FIXME: Create an empty table, w/o columns
-        db.execute "CREATE TABLE IF NOT EXISTS #{@db_table}(sample_1 TEXT)"
+        db.execute "CREATE TABLE IF NOT EXISTS #{@db_table}(date TEXT)"
         db.results_as_hash = true
         
         # Verify that columns in config exist in excel
@@ -75,7 +76,7 @@ class ClusterField
             abort("ERROR: Column '#{col_config.keys[0]}' present in config, but not in the data array!") unless found
         }
     
-        # cleanup column names
+        # Lambda to cleanup column names
         column_name_format = lambda { |i|
             old = i
             column_formatted = i.keys[0].to_s
@@ -85,7 +86,7 @@ class ClusterField
             column_formatted
         }
     
-        # add new columns to the table if they don't exist yet
+        # Add new columns to the table if they don't exist yet
         @column_names.each{ |col_name|
             column_formatted = column_name_format.call(col_name)
             records = db.execute  "SELECT COUNT(*) AS CNTREC FROM pragma_table_info('#{@db_table}') WHERE name='#{column_formatted}'"
@@ -102,8 +103,10 @@ class ClusterField
         }
         col_names_formatted.strip!
         col_names_formatted.gsub!(" ",",")
+        col_names_formatted << ',date'
         
-        # Iterate through rows and insert data into the database
+        # Iterate through data rows and execute SQL query that inserts data into the db
+        today = Date.today.to_s
         arr.each{|row|
             values_string = ""
             col_names_list.each{ |key|
@@ -111,7 +114,7 @@ class ClusterField
             }
             values_string.strip!
             values_string.gsub!(" ",",")
-            # TODO - Insert date & time
+            values_string = "#{values_string},'#{Date.today.to_s}'" # append date to raw values
             db.execute "INSERT INTO #{@db_table} (#{col_names_formatted}) VALUES (#{values_string})"
         }    
     end
@@ -146,7 +149,7 @@ configurations = [
         column_names: [{"ColumnA": "TEXT"},{"ColumnC": "TEXT"}, {"ColumnD": "TEXT"}],
         store_name: "my_file_2022.xlsx",
         db_table: "my_table",
-        save_to_db: false
+        save_to_db: true
     },
     {
         file_name: "test/my_file2.xlsx",
