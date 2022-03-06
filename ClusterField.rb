@@ -1,6 +1,7 @@
 require 'date'
 require 'sqlite3'
 require 'xsv'
+require 'digest'
 
 class ClusterField
     def initialize(config)
@@ -42,10 +43,25 @@ class ClusterField
      end
 
      def archive
-        new_file = "tmp/" << @store_name
-        today = Date.today.to_s
+        err = false
+        today = "db/#{Date.today.to_s}"
+        new_file = "tmp/#{@store_name}"
+        old_file = "#{today}/#{@store_name}"
+        puts new_file
+        puts old_file
         Dir.mkdir(today) unless Dir.exist? (today)
-        File.copy_stream(new_file, today << "/" << @store_name)
+        # Don't save again if it's the same day and files are identical
+        checksum_old = Digest::MD5.hexdigest(File.read(old_file))
+        checksum_new = Digest::MD5.hexdigest(File.read(new_file))
+        if checksum_new != checksum_old
+            puts "Copying to archive directory: #{today}"
+            Dir.mkdir(today) unless Dir.exist? (today)
+            File.copy_stream(new_file, today << "/" << @store_name)
+        else
+            puts "WARNING: Identical file already backed up on the same day"
+            err = true
+        end
+        return err
     end
 
     def excel_array
