@@ -23,14 +23,12 @@ Thus such a quick query would provide a quick overview to make more informed dai
 
 - Intended to be run as a Scheduled daily task (cron job)
 - Comparison of latest grabbed and previous files
-    - [ ] Store only unique files
-    - [ ] Compare by edit date
-    - [ ] Compare by checksum
+    - [x] Store only unique files
+    - [x] Compare by edit date
+    - [x] Compare by checksum
 - [x] Organise stored files by date - a single file per-day
-- [ ] Files that have to be retrieved are configured within a configuration file
 - [x] File names matching
     - [x] Dynamic pattern matching support (e.g. in case source files change their name on daily / weekly basis)
-    - [ ] Ability to configure conditions - e.g. grab only newest file in a directory
 
 ## Database
 
