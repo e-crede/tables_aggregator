@@ -1,6 +1,6 @@
 # ClusterField:
 # A Script to grab excel files from remote (network) shares,
-# copy them to local directorie and transer data into an SQLite database
+# copy them to local directories and copy data into an SQLite database
 
 # frozen_string_literal: false
 
@@ -91,7 +91,7 @@ class ClusterField < ClusterFiles
   private
 
   def create_table
-    @db.execute "CREATE TABLE IF NOT EXISTS #{@db_table}(date TEXT)"
+    @db.execute "CREATE TABLE IF NOT EXISTS #{@db_table}(date TEXT, datetime TEXT)"
     @db.results_as_hash = true
   end
 
@@ -130,7 +130,7 @@ class ClusterField < ClusterFiles
       col_names_formatted += "'#{column_formatted}' "
       col_names_list.push(column_formatted)
     end
-    col_names_formatted.strip!.gsub!(' ', ',') << ',date'
+    col_names_formatted.strip!.gsub!(' ', ',') << ',date,datetime'
     [col_names_formatted, col_names_list]
   end
 
@@ -142,7 +142,7 @@ class ClusterField < ClusterFiles
       end
       values_string.strip!
       values_string.gsub!(' ', ',')
-      values_string = "#{values_string},'#{Date.today}'" # append date to raw values
+      values_string = "#{values_string},'#{Date.today}','#{DateTime.now}'" # append date to raw values
       @db.execute "INSERT INTO #{@db_table} (#{col_names_formatted}) VALUES (#{values_string})"
     end
   end
@@ -157,7 +157,7 @@ class ClusterField < ClusterFiles
     sheet
   end
 
-  def check_for_duplicates
+  def check_for_duplicates(arr, col_names_formatted, col_names_list)
     # TODO: check that fields are not in db already
   end
 
@@ -172,7 +172,7 @@ class ClusterField < ClusterFiles
     arr = excel_array
     check_columns(arr)
     col_names_formatted, col_names_list = prepare_columns_for_sql
-    check_for_duplicates
+    check_for_duplicates(arr, col_names_formatted, col_names_list)
     insert_rows(arr, col_names_formatted, col_names_list)
   end
 end
@@ -209,7 +209,7 @@ configurations = [
     store_name: 'my_file2.xlsx',
     db_table: 'my_table_2',
     save_to_db: true,
-    archive_file: true
+    archive_file: false
   }
 ]
 
