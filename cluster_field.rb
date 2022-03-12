@@ -151,8 +151,8 @@ class ClusterField < ClusterFiles
     puts 'INFO: Reading excel file into memory...'
     file_name = 'tmp/' << @store_name
     x = Xsv.open(file_name)
-    # TODO: Include @start_row seelction within an array
     sheet = x.sheets_by_name(@sheet_name).first
+    sheet.row_skip = @start_row
     sheet.parse_headers!
     sheet
   end
@@ -193,7 +193,7 @@ end
 configurations = [
   {
     file_name: 'test/my_file.xlsx',
-    start_row: 1,
+    start_row: 0,
     sheet_name: 'Sheet1',
     column_names: [{ 'ColumnA': 'TEXT' }, { 'ColumnC': 'TEXT' }, { 'ColumnD': 'TEXT' }],
     store_name: 'my_file_2022.xlsx',
@@ -205,11 +205,11 @@ configurations = [
     file_name: 'test/my_file.xlsx',
     start_row: 1,
     sheet_name: 'Sheet1',
-    column_names: [{ 'ColumnA': 'TEXT' }, { 'ColumnC': 'TEXT' }, { 'ColumnD': 'TEXT' }],
-    store_name: 'my_file_2022.xlsx',
-    db_table: 'my_table',
-    save_to_db: false,
-    archive_file: false
+    column_names: [{ 'textA': 'TEXT' }, { 'textB': 'TEXT' }],
+    store_name: 'my_file2.xlsx',
+    db_table: 'my_table_2',
+    save_to_db: true,
+    archive_file: true
   }
 ]
 
