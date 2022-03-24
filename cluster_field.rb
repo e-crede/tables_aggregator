@@ -95,6 +95,14 @@ class ClusterField < ClusterFiles
     @db.results_as_hash = true
   end
 
+  # Use column names present inside array, if no specific columns are defined
+  def populate_columns(arr)
+    return unless @column_names.size.zero?
+
+    # Populate all column names from excel worksheet
+    arr[0].each { |col| @column_names.append("#{col[0]}": 'TEXT') }
+  end
+
   # Verify that columns in config exist in excel
   def check_columns(arr)
     @column_names.each do |col_config|
@@ -168,8 +176,9 @@ class ClusterField < ClusterFiles
     return puts 'WARNING: Saving to DB disabled' unless @save_to_db
 
     create_table
-    add_new_columns
     arr = excel_array
+    populate_columns(arr)
+    add_new_columns
     check_columns(arr)
     col_names_formatted, col_names_list = prepare_columns_for_sql
     check_for_duplicates(arr, col_names_formatted, col_names_list)
@@ -195,17 +204,17 @@ configurations = [
     file_name: 'test/my_file.xlsx',
     start_row: 0,
     sheet_name: 'Sheet1',
-    column_names: [{ 'ColumnA': 'TEXT' }, { 'ColumnC': 'TEXT' }, { 'ColumnD': 'TEXT' }],
+    column_names: [],
     store_name: 'my_file_2022.xlsx',
     db_table: 'my_table',
     save_to_db: true,
-    archive_file: true
+    archive_file: false
   },
   {
     file_name: 'test/my_file.xlsx',
     start_row: 1,
     sheet_name: 'Sheet1',
-    column_names: [{ 'textA': 'TEXT' }, { 'textB': 'TEXT' }],
+    column_names: [{ 'textA': 'TEXT' }, { 'textD': 'TEXT' }],
     store_name: 'my_file2.xlsx',
     db_table: 'my_table_2',
     save_to_db: true,
